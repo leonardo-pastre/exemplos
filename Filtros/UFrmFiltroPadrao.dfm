@@ -11,6 +11,8 @@ object FrmFiltroPadrao: TFrmFiltroPadrao
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -60,7 +62,12 @@ object FrmFiltroPadrao: TFrmFiltroPadrao
     Top = 138
     Width = 145
     Height = 21
+    ItemIndex = 0
     TabOrder = 6
+    Text = 'SP'
+    Items.Strings = (
+      'SP'
+      'RJ')
   end
   object EdtCPFCNPJ: TEdit
     Left = 88
@@ -68,6 +75,7 @@ object FrmFiltroPadrao: TFrmFiltroPadrao
     Width = 145
     Height = 21
     TabOrder = 0
+    Text = '123456789'
   end
   object CbxClienteAtivo: TCheckBox
     Left = 88
@@ -75,6 +83,8 @@ object FrmFiltroPadrao: TFrmFiltroPadrao
     Width = 97
     Height = 17
     Caption = 'Cliente Ativo'
+    Checked = True
+    State = cbChecked
     TabOrder = 5
   end
   object EdtIdadeInicial: TEdit
@@ -83,6 +93,7 @@ object FrmFiltroPadrao: TFrmFiltroPadrao
     Width = 73
     Height = 21
     TabOrder = 3
+    Text = '10'
   end
   object EdtIdadeFinal: TEdit
     Left = 191
@@ -90,6 +101,7 @@ object FrmFiltroPadrao: TFrmFiltroPadrao
     Width = 73
     Height = 21
     TabOrder = 4
+    Text = '30'
   end
   object BtnFiltrar: TButton
     Left = 88
@@ -98,6 +110,7 @@ object FrmFiltroPadrao: TFrmFiltroPadrao
     Height = 25
     Caption = 'Filtrar'
     TabOrder = 7
+    OnClick = BtnFiltrarClick
   end
   object DtpDataCadInicial: TDateTimePicker
     Left = 88
@@ -113,8 +126,8 @@ object FrmFiltroPadrao: TFrmFiltroPadrao
     Top = 60
     Width = 121
     Height = 21
-    Date = 43839.337470243050000000
-    Time = 43839.337470243050000000
+    Date = 43870.337470243050000000
+    Time = 43870.337470243050000000
     TabOrder = 2
   end
 end
