@@ -41,7 +41,7 @@ type
   private
     fCriterios: TCriterios;
   public
-    procedure AddCriterio(Metodo: string; Valor: Variant; Ordem: Integer);
+    procedure AddCriterio(Metodo: string; Ordem: Integer; Valor: Variant);
     property Criterios: TCriterios read fCriterios;
   end;
 
@@ -52,6 +52,8 @@ type
     fTemporario: TStringList;
     fListaCriterios: TListaCriterios;
     function GetParametros(Criterio: TCriterio): TParametros;
+    function ToString(Dado: Variant): string;
+  published
     // Metodos para montagem da consulta, incluíndo filtros específicos
     procedure CriterioCPFCNPJ(Dado: TParametros);
     procedure CriterioDataCadastro(Dado: TParametros);
@@ -63,112 +65,36 @@ type
     destructor Destroy; override;
     function BuildSQL: string;
     procedure SetCriterio(Filtro: TFiltro); overload;
-    procedure SetCriterio(Metodo: string; Valor: Variant; Ordem: Integer); overload;
+    procedure SetCriterio(Metodo: string; Ordem: Integer; Valor: Variant); overload;
     property ListaCriterios: TListaCriterios read fListaCriterios;
   end;
 
 implementation
 
 uses
-  System.SysUtils, System.Rtti;
+  System.SysUtils, System.Rtti, System.StrUtils;
 
 { TFiltro }
 
 function TFiltro.BuildSQL: string;
 var
-
-
-  RttiContext: TRttiContext;
-  RttiInstanceType: TRttiInstanceType;
-  RttiMethod: TRttiMethod;
-  Instance: TValue;
-
-
-
-  lContexto: TRttiContext;
-  lTipo: TRttiType;
-  lMetodo: TRttiMethod;
-
-  I, J: Integer;
-  //lMetodo: TMethod;
-  //lExecute: TExecute;
-  lNomeMetodo: string;
+  I: Integer;
+  lMetodo: TMethod;
+  lExecute: TExecute;
   lParametros: TParametros;
-  lValor: TValue;
 begin
-
-
-
-
-
-
-  RttiContext := TRttiContext.Create;
-
-  // Encontra o tipo
-  //RttiInstanceType := RttiContext.FindType('UFiltro.TFiltro').AsInstance;
-  RttiInstanceType := RttiContext.GetType(Self.ClassInfo).AsInstance;
-
-  // Encontra o constructor (pelo nome "Create")
-  RttiMethod := RttiInstanceType.GetMethod('Create');
-
-  // Invoca o construtor, atribundo a instância à variável "Instance"
-  Instance := RttiMethod.Invoke(RttiInstanceType.MetaclassType,[]);
-
-  // Encontra o método "AbrirNotepad"
-  RttiMethod := RttiInstanceType.GetMethod('CriterioCPFCNPJ');
-
-  // Invoca o método
-  if Assigned(RttiMethod) then
-    RttiMethod.Invoke(Instance, ['123456789']);
-
-
-
-  {
-  lContexto := TRttiContext.Create;
-
-  try
-    lTipo := lContexto.GetType(Self.ClassType);
-
-    for I := 0 to Length(fListaCriterios.Criterios) -1 do
-    begin
-      lNomeMetodo := fListaCriterios.Criterios[I].Metodo;
-      lParametros := GetParametros(fListaCriterios.Criterios[I]);
-
-      for J := 0 to Length(lParametros) -1 do
-      begin
-        lValor.FromVariant(lParametros[J]);
-      end;
-
-      lMetodo := lTipo.GetMethod(lNomeMetodo);
-
-      if Assigned(lMetodo) then
-      begin
-        lMetodo.Invoke(Self, lValor);
-      end;
-    end;
-  finally
-    lContexto.Free;
-  end;
-  }
-  (*
   for I := 0 to Length(fListaCriterios.Criterios) -1 do
   begin
-    lNomeMetodo := fListaCriterios.Criterios[I].Metodo;
-
-    //lMetodo.Data := Pointer(fListaCriterios);
-    //lMetodo.Code := fListaCriterios.Criterios[I].MethodAddress(lNomeMetodo);
-
     lMetodo.Data := Pointer(Self);
-    lMetodo.Code := Self.MethodAddress(lNomeMetodo);
+    lMetodo.Code := Self.MethodAddress(fListaCriterios.Criterios[I].Metodo);
 
     if Assigned(lMetodo.Code) then
     begin
-      lExecute := TExecute(lMetodo);
       lParametros := GetParametros(fListaCriterios.Criterios[I]);
+      lExecute := TExecute(lMetodo);
       lExecute(lParametros);
     end;
   end;
-  *)
 
   // Retorna o buildSQL
   Result := fTemporario.Text;
@@ -182,27 +108,27 @@ end;
 
 procedure TFiltro.CriterioClienteAtivo(Dado: TParametros);
 begin
-  fTemporario.Add('Ativo: ' + Dado[0]);
+  fTemporario.Add('Ativo: ' + ToString(Dado[0]));
 end;
 
 procedure TFiltro.CriterioCPFCNPJ(Dado: TParametros);
 begin
-  fTemporario.Add('CPF/CNPJ: ' + Dado[0]);
+  fTemporario.Add('CPF/CNPJ: ' + ToString(Dado[0]));
 end;
 
 procedure TFiltro.CriterioDataCadastro(Dado: TParametros);
 begin
-  fTemporario.Add(Format('Data Cadastro: ', [Dado[0], Dado[1]]));
+  fTemporario.Add(Format('Data Cadastro: ', [ToString(Dado[0]), ToString(Dado[1])]));
 end;
 
 procedure TFiltro.CriterioEstado(Dado: TParametros);
 begin
-  fTemporario.Add('Estado: ' + Dado[0]);
+  fTemporario.Add('Estado: ' + ToString(Dado[0]));
 end;
 
 procedure TFiltro.CriterioIdade(Dado: TParametros);
 begin
-  fTemporario.Add(Format('Idade: %d até %d', [Dado[0], Dado[1]]));
+  fTemporario.Add(Format('Idade: %s até %s', [ToString(Dado[0]), ToString(Dado[1])]));
 end;
 
 destructor TFiltro.Destroy;
@@ -227,9 +153,25 @@ begin
   Result := lParametros;
 end;
 
-procedure TFiltro.SetCriterio(Metodo: string; Valor: Variant; Ordem: Integer);
+procedure TFiltro.SetCriterio(Metodo: string; Ordem: Integer; Valor: Variant);
 begin
   fListaCriterios.AddCriterio(Metodo, Valor, Ordem);
+end;
+
+function TFiltro.ToString(Dado: Variant): string;
+begin
+  case TVarData(Dado).VType of
+    varSmallInt,
+    varInteger   : Result := IntToStr(Dado);
+    varSingle,
+    varDouble,
+    varCurrency  : Result := FloatToStr(Dado);
+    varDate      : Result := FormatDateTime('dd/mm/yyyy', Dado);
+    varBoolean   : IfThen(Dado,'1','0');
+    varString    : Result := Dado;
+  else
+    Result := '';
+  end;
 end;
 
 procedure TFiltro.SetCriterio(Filtro: TFiltro);
@@ -250,7 +192,7 @@ end;
 
 { TListaCriterios }
 
-procedure TListaCriterios.AddCriterio(Metodo: string; Valor: Variant; Ordem: Integer);
+procedure TListaCriterios.AddCriterio(Metodo: string; Ordem: Integer; Valor: Variant);
 var
   I: Integer;
   lExiste: Boolean;
